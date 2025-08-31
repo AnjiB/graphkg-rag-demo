@@ -61,8 +61,9 @@ poetry install
 ```bash
 # Start Neo4j container
 docker run -d --name neo4j \
-  -p 7687:7687 -p 7474:7474 \
-  -e NEO4J_AUTH=neo4j/test \
+  -p 7474:7474 \
+  -p 7687:7687 \
+  -e NEO4J_AUTH=neo4j/Test1234 \
   neo4j:latest
 
 # Access Neo4j browser at http://localhost:7474

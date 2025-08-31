@@ -1,6 +1,6 @@
 from neo4j import GraphDatabase
 
-driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "test"))
+driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "Test1234"))
 
 def create_node(tx, label, name):
     tx.run(f"MERGE (n:{label} {{name: $name}})", name=name)

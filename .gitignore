@@ -1,0 +1,75 @@
+# -----------------------
+# Python / Poetry
+# -----------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+.venv/
+poetry.lock
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# -----------------------
+# Node / React
+# -----------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+dist/
+build/
+
+# -----------------------
+# macOS
+# -----------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# -----------------------
+# Logs and temporary files
+# -----------------------
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+
+# -----------------------
+# Docker
+# -----------------------
+docker-compose.override.yml
+*.env
+*.pid
+*.sock
+
+# -----------------------
+# Neo4j / Database
+# -----------------------
+neo4j/data/
+neo4j/logs/
+neo4j/import/
+neo4j/plugins/
+
+# -----------------------
+# Python cache & bytecode
+# -----------------------
+*.pyc
+*.pyo
+__pycache__/
+
+# -----------------------
+# Misc
+# -----------------------
+*.sqlite3
+*.db
+.Dockerfile.swp
