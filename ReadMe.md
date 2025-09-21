@@ -225,6 +225,85 @@ Your uploaded documents and knowledge graphs are automatically saved and will be
 - **Safe processing**: Script tags and JavaScript code are handled securely
 - **Error handling**: Clear error messages for unsupported file types
 
+## 🔍 Exploring Knowledge Graphs with Neo4j
+
+### Access Neo4j Browser
+- **URL**: [http://localhost:7474](http://localhost:7474)
+- **Login**: `neo4j` / `Test1234`
+
+### What Knowledge Graphs Look Like
+Here's an example of how your knowledge graph relationships appear in the Neo4j Browser:
+
+![Knowledge Graph in Neo4j Browser](src/backend/resources/neo4j.png)
+
+*This shows the interconnected concepts and relationships extracted from your uploaded documents*
+
+### Essential Queries
+
+#### 1. **View All Concepts and Relationships**
+```cypher
+MATCH (n)-[r]->(m) 
+RETURN n, r, m 
+LIMIT 50
+```
+
+#### 2. **Count Total Nodes and Relationships**
+```cypher
+MATCH (n) RETURN count(n) as total_nodes;
+MATCH ()-[r]->() RETURN count(r) as total_relationships;
+```
+
+#### 3. **Find Most Connected Concepts**
+```cypher
+MATCH (n:Concept)-[r]-() 
+RETURN n.name as concept, count(r) as connections 
+ORDER BY connections DESC 
+LIMIT 10
+```
+
+#### 4. **View All Concept Names**
+```cypher
+MATCH (n:Concept) 
+RETURN n.name as concept_name 
+ORDER BY n.name
+```
+
+#### 5. **Find Shortest Path Between Concepts**
+```cypher
+MATCH (a:Concept {name: 'concept1'}), (b:Concept {name: 'concept2'}), 
+      path = shortestPath((a)-[*]-(b)) 
+RETURN path
+```
+
+#### 6. **Show Full Graph (Small Datasets)**
+```cypher
+MATCH (n)-[r]->(m) 
+RETURN n, r, m
+```
+
+#### 7. **Find Isolated Concepts**
+```cypher
+MATCH (n:Concept) 
+WHERE NOT (n)-[]-() 
+RETURN n.name as isolated_concept
+```
+
+#### 8. **Graph Statistics**
+```cypher
+MATCH (n) 
+WITH labels(n) as nodeLabels, count(n) as nodeCount 
+UNWIND nodeLabels as label 
+RETURN label, sum(nodeCount) as count 
+ORDER BY count DESC
+```
+
+### Pro Tips
+- **Start with queries 1-4** to get familiar with your data
+- **Use query 3** to find the most important concepts
+- **Query 5** is great for finding connections between specific concepts
+- **Query 6** shows the full graph but may be slow with large datasets
+- **Switch between Table and Graph views** in Neo4j Browser for different visualizations
+
 ## 🎨 Customization
 
 ### Changing AI Model
