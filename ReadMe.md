@@ -1,192 +1,240 @@
-# PDF QA Pipeline with LangChain, Chroma, Neo4j, and Ollama
+# Document QA App with Interactive Knowledge Graph
 
-## Project Overview
-A comprehensive end-to-end PDF QA pipeline that combines document processing, vector search, knowledge graph construction, and interactive visualization:
+A powerful AI-powered application that lets you upload documents, ask questions, and explore knowledge through interactive visualizations. Perfect for researchers, students, and anyone who wants to quickly understand and explore document content.
 
-- **PDF Processing**: Upload PDFs → chunk → store embeddings in Chroma vector database
-- **Knowledge Graph**: Extract concepts → build relationships → store in Neo4j graph database  
-- **Question Answering**: LLM-powered QA using Ollama Phi-3 with retrieval-augmented generation
-- **Interactive Frontend**: React-based UI with vis-network for KG visualization and chunk exploration
+## 🌟 What This App Does
 
-## Tech Stack
+- **Upload Documents**: Support for PDF, text, code, and data files
+- **Ask Questions**: Get AI-powered answers about your documents
+- **Source Transparency**: Know whether answers come from your documents or AI's general knowledge
+- **Visual Knowledge Graph**: See how concepts connect in your documents
+- **Persistent Storage**: Your data stays available between sessions
+- **Interactive Exploration**: Click and explore document chunks and relationships
+- **Smart UI**: Intuitive interface with loading states and clear feedback
 
-### Backend
-- **Framework**: FastAPI with CORS middleware
-- **Document Processing**: LangChain (PyPDFLoader, RecursiveCharacterTextSplitter)
-- **Vector Database**: Chroma with sentence-transformers embeddings
-- **Graph Database**: Neo4j with Python driver
-- **LLM**: Ollama with Phi-3 model
-- **Package Management**: Poetry
+## 📋 Supported File Types
 
-### Frontend
-- **Framework**: React 18
-- **Network Visualization**: vis-network for interactive knowledge graph display
-- **HTTP Client**: Axios for API communication
-- **Build Tool**: Create React App
+- **Documents**: PDF, TXT, Markdown (.md)
+- **Code Files**: Python (.py), JavaScript (.js), HTML (.html), CSS (.css)
+- **Data Files**: JSON (.json), XML (.xml)
 
-## Project Structure
-```
-graphkg-rag-demo/
-├── pyproject.toml          # Poetry configuration and dependencies
-├── ReadMe.md               # This file
-├── src/
-│   ├── backend/
-│   │   ├── main.py         # FastAPI application with all endpoints
-│   │   ├── utils.py        # PDF loading and text splitting utilities
-│   │   ├── kg_db.py        # Neo4j database operations
-│   │   └── hello.py        # Simple test file
-│   └── frontend/
-│       ├── package.json    # Frontend dependencies
-│       └── src/
-│           ├── App.jsx     # Main React component
-│           └── index.jsx   # React entry point
-```
+## 🚀 Quick Start Guide
 
-## Installation & Setup
+### Step 1: Install Required Software
 
-### Prerequisites
-- Python 3.11+
-- Node.js 16+
-- Docker (for Neo4j)
-- Poetry (Python package manager)
+#### 1.1 Install Python (3.11 or newer)
+- **Windows**: Download from [python.org](https://www.python.org/downloads/)
+- **Mac**: Use Homebrew: `brew install python@3.11`
+- **Linux**: `sudo apt install python3.11` (Ubuntu/Debian)
 
-### Backend Setup
+#### 1.2 Install Node.js (16 or newer)
+- **All Platforms**: Download from [nodejs.org](https://nodejs.org/)
+- **Mac**: `brew install node`
+- **Linux**: `sudo apt install nodejs npm`
+
+#### 1.3 Install Docker
+- **All Platforms**: Download from [docker.com](https://www.docker.com/products/docker-desktop/)
+- **Mac**: `brew install --cask docker`
+- **Linux**: Follow [Docker installation guide](https://docs.docker.com/engine/install/)
+
+#### 1.4 Install Poetry (Python package manager)
 ```bash
-cd src/backend
-poetry shell
-poetry install
+curl -sSL https://install.python-poetry.org | python3 -
 ```
 
-### Neo4j Setup
+#### 1.5 Install Ollama (AI model runner)
 ```bash
-# Start Neo4j container
+# Mac/Linux
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Windows: Download from ollama.com
+```
+
+### Step 2: Download and Setup the App
+
+1. **Clone or download this project**
+2. **Open terminal/command prompt in the project folder**
+
+### Step 3: Start Required Services
+
+#### 3.1 Start Neo4j Database
+```bash
 docker run -d --name neo4j \
   -p 7474:7474 \
   -p 7687:7687 \
   -e NEO4J_AUTH=neo4j/Test1234 \
   neo4j:latest
-
-# Access Neo4j browser at http://localhost:7474
-# Default credentials: neo4j/test
 ```
 
-### Ollama Setup
+#### 3.2 Download AI Model
 ```bash
-# Install Ollama
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull Phi-3 model
 ollama pull phi3
 ```
 
-### Frontend Setup
+### Step 4: Install App Dependencies
+
+#### 4.1 Backend Setup
+```bash
+cd src/backend
+poetry install
+```
+
+#### 4.2 Frontend Setup
 ```bash
 cd src/frontend
 npm install
-npm start
 ```
 
-## Running the Application
+### Step 5: Run the Application
 
-### Start Backend
+#### 5.1 Start Backend (Terminal 1)
 ```bash
 cd src/backend
-poetry shell
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+poetry run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Start Frontend
+#### 5.2 Start Frontend (Terminal 2)
 ```bash
 cd src/frontend
 npm start
 ```
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- Neo4j Browser: http://localhost:7474
+### Step 6: Access the App
+- **Main App**: Open [http://localhost:3000](http://localhost:3000) in your browser
+- **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Database Browser**: [http://localhost:7474](http://localhost:7474) (neo4j/Test1234)
 
-## Features
+## 🎯 How to Use
 
-### 1. PDF Processing & Embedding
-- PDF upload and processing using LangChain
-- Text chunking with configurable size (500 chars) and overlap (50 chars)
-- Vector embeddings using sentence-transformers/all-MiniLM-L6-v2
-- Persistent storage in Chroma vector database
+### 1. Upload a Document
+- Click "Choose File" and select any supported document
+- See file selection confirmation and upload button becomes enabled
+- Click "Upload Document" (shows "Uploading..." while processing)
+- File input clears automatically after successful upload
 
-### 2. Knowledge Graph Construction
-- Automatic concept extraction from PDF chunks
-- Node creation for each concept
-- Relationship creation between consecutive concepts
-- Neo4j graph database storage and querying
+### 2. Ask Questions
+- Type your question in the text box
+- Click "Ask Question" (button is disabled while processing)
+- Get AI-powered answers with source transparency:
+  - 📄 **Document-based**: Answer comes from your uploaded files
+  - 🤖 **General Knowledge**: Answer comes from AI's training data
+- Relevant concepts are highlighted in the knowledge graph
 
-### 3. Question Answering
-- Retrieval-augmented generation (RAG) pipeline
-- Semantic search using vector similarity
-- LLM-powered answer generation with Ollama Phi-3
-- Relevant concept highlighting in knowledge graph
+### 3. Explore Data
+- Click "View Chunks & Knowledge Graph" to see:
+  - Document chunks (text segments)
+  - Interactive knowledge graph showing concept relationships
 
-### 4. Interactive Visualization
-- Real-time knowledge graph display using vis-network
-- Dynamic node highlighting based on question relevance
-- PDF chunk exploration and viewing
-- Responsive web interface
+### 4. Visual Exploration
+- Click and drag nodes in the knowledge graph
+- Zoom in/out to explore relationships
+- Relevant concepts are highlighted when you ask questions
 
-## API Endpoints
+## 🔧 Troubleshooting
 
-| Endpoint | Method | Description | Request Body | Response |
-|----------|--------|-------------|--------------|----------|
-| `/upload_pdf` | POST | Upload and process PDF file | `file: UploadFile` | Upload confirmation with chunk count |
-| `/ask_question` | POST | Ask question and get answer | `{"question": "string"}` | Answer + relevant concepts |
-| `/get_chunks` | GET | Retrieve all PDF chunks | - | Array of text chunks |
-| `/get_kg` | GET | Get knowledge graph data | - | Nodes and edges arrays |
+### Common Issues and Solutions
 
-## Usage Workflow
+#### "Port already in use" Error
+- **Solution**: Stop other applications using ports 3000, 8000, 7474, or 7687
+- **Check**: `lsof -i :3000` (Mac/Linux) or `netstat -ano | findstr :3000` (Windows)
 
-1. **Upload PDF**: Select a PDF file and upload it through the web interface
-2. **Processing**: The system automatically chunks the PDF, creates embeddings, and builds a knowledge graph
-3. **Ask Questions**: Type questions in natural language and get AI-generated answers
-4. **Explore Data**: View the extracted chunks and interactive knowledge graph
-5. **Visual Insights**: See relevant concepts highlighted in the graph based on your questions
+#### "Module not found" Error
+- **Solution**: Make sure you're in the correct directory and ran `poetry install`
+- **Check**: `poetry --version` should work
 
-## Configuration
+#### "Docker not running" Error
+- **Solution**: Start Docker Desktop application
+- **Check**: `docker ps` should show running containers
 
-### Backend Settings
-- **Chunk Size**: 500 characters (configurable in `utils.py`)
-- **Chunk Overlap**: 50 characters
-- **Embedding Model**: sentence-transformers/all-MiniLM-L6-v2
-- **LLM Model**: Ollama phi3
-- **Vector Search**: Top 3 most relevant documents
+#### "Ollama model not found" Error
+- **Solution**: Run `ollama pull phi3` to download the AI model
+- **Check**: `ollama list` should show phi3 model
 
-### Database Settings
-- **Neo4j**: Localhost:7687, credentials: neo4j/test
-- **Chroma**: Local directory storage (`./chroma_db`)
+#### App won't start
+- **Solution**: Make sure all services are running:
+  - Neo4j: `docker ps | grep neo4j`
+  - Backend: Check terminal for "Application startup complete"
+  - Frontend: Check terminal for "Compiled successfully"
 
-## Development
+### Getting Help
 
-### Adding New Features
-- Backend: Extend FastAPI endpoints in `main.py`
-- Frontend: Modify React components in `src/frontend/src/`
-- Database: Update Neo4j operations in `kg_db.py`
+1. **Check the logs** in your terminal windows
+2. **Verify all services** are running (see Step 5)
+3. **Restart services** if needed:
+   - Backend: Ctrl+C, then run the uvicorn command again
+   - Frontend: Ctrl+C, then run `npm start` again
+   - Neo4j: `docker restart neo4j`
 
-### Testing
-- Backend: Use FastAPI's automatic API documentation at http://localhost:8000/docs
-- Frontend: React development server with hot reload
+## 🏗️ Technical Details
 
-## Troubleshooting
+### Architecture
+- **Frontend**: React 18 with modern UI components
+- **Backend**: FastAPI with automatic API documentation
+- **AI**: Ollama with Phi-3 model for question answering
+- **Vector Database**: ChromaDB for document embeddings
+- **Graph Database**: Neo4j for knowledge graph storage
+- **Document Processing**: LangChain for text chunking and processing
 
-### Common Issues
-1. **Neo4j Connection**: Ensure Docker container is running and accessible
-2. **Ollama Model**: Verify phi3 model is downloaded with `ollama list`
-3. **Port Conflicts**: Check if ports 3000, 8000, 7474, or 7687 are available
-4. **Dependencies**: Ensure Poetry and npm dependencies are properly installed
+### Key Features
+- **Multi-format Support**: PDF, TXT, MD, PY, JS, HTML, CSS, JSON, XML
+- **Source Detection**: Automatically identifies answer sources (documents vs. general knowledge)
+- **Persistent Storage**: Data survives app restarts
+- **Real-time Processing**: Instant document analysis with loading indicators
+- **Interactive Visualization**: Dynamic knowledge graph exploration
+- **AI-Powered QA**: Context-aware question answering
+- **Smart UI**: Button states, file selection feedback, and clear error handling
+- **Security**: Protection against malicious inputs and script injection
 
-### Logs
-- Backend: Check terminal output for FastAPI logs
-- Frontend: Check browser console for React errors
-- Neo4j: Check Docker logs with `docker logs neo4j`
+### File Structure
+```
+graphkg-rag-demo/
+├── src/
+│   ├── backend/           # Python FastAPI backend
+│   │   ├── main.py       # Main application
+│   │   ├── utils.py      # Document processing
+│   │   └── kg_db.py      # Database operations
+│   └── frontend/         # React frontend
+│       ├── src/
+│       │   ├── App.jsx   # Main component
+│       │   └── App.css   # Styling
+│       └── public/
+│           └── index.html
+├── pyproject.toml        # Python dependencies
+└── README.md            # This file
+```
 
+## 🔄 Data Persistence
 
-## License
+Your uploaded documents and knowledge graphs are automatically saved and will be available the next time you start the app. No need to re-upload documents!
 
-This project is open source and available under the MIT License.
+## ✨ Recent Features
+
+### Source Transparency
+- **Document-based answers**: Clearly marked with 📄 icon and green indicator
+- **General knowledge answers**: Marked with 🤖 icon and warning message
+- **Smart detection**: Automatically identifies whether answers come from your documents or AI's training data
+
+### Enhanced User Experience
+- **Smart button states**: Upload button disabled until file selected, Ask button disabled while processing
+- **Loading indicators**: Clear feedback during document processing and question answering
+- **File selection feedback**: Visual confirmation when files are selected
+- **Auto-clear inputs**: File input clears after successful upload
+
+### Security Improvements
+- **Input validation**: Protection against malicious inputs and script injection
+- **Safe processing**: Script tags and JavaScript code are handled securely
+- **Error handling**: Clear error messages for unsupported file types
+
+## 🎨 Customization
+
+### Changing AI Model
+Edit `src/backend/main.py` and change `model="phi3"` to another Ollama model:
+```python
+llm = Ollama(model="llama2")  # or any other model
+```
+
+### Adjusting Text Chunking
+Edit `src/backend/utils.py` to change chunk size:
+```python
+splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+```

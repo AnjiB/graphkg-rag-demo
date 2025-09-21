@@ -20,3 +20,8 @@ def add_concepts(concepts):
             session.write_transaction(create_node, "Concept", concept)
         for i in range(len(concepts)-1):
             session.write_transaction(create_edge, concepts[i], concepts[i+1], "RELATED_TO")
+
+def get_all_concepts():
+    with driver.session() as session:
+        result = session.run("MATCH (n:Concept) RETURN n.name AS name ORDER BY n.name")
+        return [record["name"] for record in result]
