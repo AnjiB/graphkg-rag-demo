@@ -6,7 +6,6 @@ A powerful AI-powered application that lets you upload documents, ask questions,
 
 - **Upload Documents**: Support for PDF, text, code, and data files
 - **Ask Questions**: Get AI-powered answers about your documents
-- **Source Transparency**: Know whether answers come from your documents or AI's general knowledge
 - **Visual Knowledge Graph**: See how concepts connect in your documents
 - **Persistent Storage**: Your data stays available between sessions
 - **Interactive Exploration**: Click and explore document chunks and relationships
@@ -115,9 +114,7 @@ npm start
 ### 2. Ask Questions
 - Type your question in the text box
 - Click "Ask Question" (button is disabled while processing)
-- Get AI-powered answers with source transparency:
-  - 📄 **Document-based**: Answer comes from your uploaded files
-  - 🤖 **General Knowledge**: Answer comes from AI's training data
+- Get AI-powered answers based on your uploaded documents
 - Relevant concepts are highlighted in the knowledge graph
 
 ### 3. Explore Data
@@ -177,7 +174,6 @@ npm start
 
 ### Key Features
 - **Multi-format Support**: PDF, TXT, MD, PY, JS, HTML, CSS, JSON, XML
-- **Source Detection**: Automatically identifies answer sources (documents vs. general knowledge)
 - **Persistent Storage**: Data survives app restarts
 - **Real-time Processing**: Instant document analysis with loading indicators
 - **Interactive Visualization**: Dynamic knowledge graph exploration
@@ -208,11 +204,6 @@ graphkg-rag-demo/
 Your uploaded documents and knowledge graphs are automatically saved and will be available the next time you start the app. No need to re-upload documents!
 
 ## ✨ Recent Features
-
-### Source Transparency
-- **Document-based answers**: Clearly marked with 📄 icon and green indicator
-- **General knowledge answers**: Marked with 🤖 icon and warning message
-- **Smart detection**: Automatically identifies whether answers come from your documents or AI's training data
 
 ### Enhanced User Experience
 - **Smart button states**: Upload button disabled until file selected, Ask button disabled while processing
