@@ -29,40 +29,39 @@ embeddings_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-M
 llm = Ollama(model="phi3")
 
 # Configuration
-CHROMA_DB_PATH = "./chroma_db"
-CHUNKS_DATA_PATH = "./chunks_data.json"
-
-def save_chunks_data(chunks_data):
-    """Save chunks data to JSON file for persistence"""
-    with open(CHUNKS_DATA_PATH, 'w') as f:
-        json.dump(chunks_data, f)
-
-def load_chunks_data():
-    """Load chunks data from JSON file"""
-    if os.path.exists(CHUNKS_DATA_PATH):
-        with open(CHUNKS_DATA_PATH, 'r') as f:
-            return json.load(f)
-    return []
+CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "chroma_db")
 
 def initialize_system():
     """Initialize the system by loading existing data if available"""
     global vectordb, retriever, qa_chain, pdf_chunks_data
     
-    # Load chunks data
-    pdf_chunks_data = load_chunks_data()
-    
     # Try to load existing ChromaDB
-    if os.path.exists(CHROMA_DB_PATH) and os.listdir(CHROMA_DB_PATH):
+    if os.path.exists(CHROMA_DB_PATH) and len(os.listdir(CHROMA_DB_PATH)) > 0:
+        print(f"🔍 Found ChromaDB directory with {len(os.listdir(CHROMA_DB_PATH))} items")
         try:
             vectordb = Chroma(persist_directory=CHROMA_DB_PATH, embedding_function=embeddings_model)
             retriever = vectordb.as_retriever(search_kwargs={"k": 3})
             qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
-            print(f"✅ Loaded existing ChromaDB with {len(pdf_chunks_data)} chunks")
+            
+            # Check if ChromaDB has any documents
+            try:
+                # Try to get a sample document to check if ChromaDB has data
+                sample_docs = vectordb.similarity_search("test", k=1)
+                if sample_docs:
+                    print("✅ Loaded existing ChromaDB with data")
+                else:
+                    print("✅ Loaded existing ChromaDB (empty)")
+            except Exception as e:
+                print(f"✅ Loaded existing ChromaDB (could not check content: {e})")
+            
+            pdf_chunks_data = []  # Always empty since we don't load from chunks_data.json
         except Exception as e:
             print(f"⚠️  Could not load existing ChromaDB: {e}")
             print("   Starting with empty database")
+            pdf_chunks_data = []
     else:
         print("📝 No existing ChromaDB found, starting fresh")
+        pdf_chunks_data = []
 
 # Initialize system on startup
 initialize_system()
@@ -113,9 +112,6 @@ async def upload_document(file: UploadFile = File(...)):
         vectordb = Chroma.from_documents(chunks, embeddings_model, persist_directory=CHROMA_DB_PATH)
         retriever = vectordb.as_retriever(search_kwargs={"k":3})
         qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
-        
-        # Save chunks data for persistence
-        save_chunks_data(pdf_chunks_data)
 
         os.unlink(tmp_file.name)
         return {"message": f"Uploaded {file.filename} ({file_extension}), stored {len(chunks)} chunks."}
@@ -139,55 +135,12 @@ async def ask_question(data: dict):
     relevant_docs = retriever.get_relevant_documents(question)
     relevant_concepts = [doc.page_content.split()[0] for doc in relevant_docs if doc.page_content.split()]
     
-    # Check if retrieved documents are actually relevant to the question
-    # We'll use a more sophisticated approach:
-    # 1. Check if we have substantial documents with meaningful content
-    # 2. Check if the retrieved content is actually relevant to the question topic
-    
-    # Filter out documents that are just headers, short fragments, or irrelevant content
-    meaningful_docs = []
-    for doc in relevant_docs:
-        content = doc.page_content.strip()
-        # Skip very short content or content that doesn't look like substantive text
-        # But allow markdown headers and formatting as they can be meaningful
-        if (len(content) > 50 and  # Reduced from 100 to 50
-            not content.startswith('Test') and
-            not content.startswith('grains') and
-            len(content.split()) > 5):  # Reduced from 10 to 5 words
-            meaningful_docs.append(doc)
-    
-    has_meaningful_docs = len(meaningful_docs) > 0
-    
-    # Check if the question is asking about something that could reasonably be in our documents
-    question_lower = question.lower()
-    
-    # If the question is about very general topics (like famous people, current events, etc.)
-    # and we don't have meaningful relevant content, it's likely general knowledge
-    general_topics = ['who is', 'what is', 'when did', 'where is', 'how old', 'birthday', 'born', 'died', 'founded', 'ceo', 'president', 'elon musk', 'tesla', 'spacex']
-    is_general_question = any(topic in question_lower for topic in general_topics)
-    
-    # If it's a general question and we don't have meaningful relevant docs, it's likely general knowledge
-    # Also check for script tags or other non-document content
-    has_script_content = '<script>' in question_lower or 'javascript:' in question_lower or 'alert(' in question_lower
-    
-    is_from_documents = has_meaningful_docs and not is_general_question and not has_script_content
-    
     # Get the answer
     answer = qa_chain.run(question)
     
-    # Determine the source of the answer
-    if is_from_documents:
-        answer_source = "document"
-        source_message = "This answer is based on your uploaded documents."
-    else:
-        answer_source = "general_knowledge"
-        source_message = "⚠️ This answer is from the AI's general knowledge, not from your uploaded documents. No relevant content was found in your documents for this question."
-
     return {
         "answer": answer, 
         "relevant_concepts": relevant_concepts,
-        "answer_source": answer_source,
-        "source_message": source_message,
         "retrieved_docs_count": len(relevant_docs)
     }
 
