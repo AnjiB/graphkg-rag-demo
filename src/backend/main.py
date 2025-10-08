@@ -144,6 +144,51 @@ async def ask_question(data: dict):
         "retrieved_docs_count": len(relevant_docs)
     }
 
+@app.post("/chat")
+async def chat(data: dict):
+    """
+    Chat endpoint that maintains conversation history.
+    Expects: { "question": str, "history": [{"role": "user"/"assistant", "content": str}] }
+    """
+    question = data.get("question")
+    history = data.get("history", [])
+    
+    if not qa_chain:
+        return JSONResponse({"error": "No documents uploaded yet."}, status_code=404)
+    
+    # Get relevant documents for the current question
+    relevant_docs = retriever.get_relevant_documents(question)
+    relevant_concepts = [doc.page_content.split()[0] for doc in relevant_docs if doc.page_content.split()]
+    
+    # Build context from conversation history
+    conversation_context = ""
+    if history:
+        conversation_context = "\n\nPrevious conversation:\n"
+        for msg in history[-4:]:  # Keep last 4 messages for context (2 Q&A pairs)
+            role = "Human" if msg["role"] == "user" else "Assistant"
+            conversation_context += f"{role}: {msg['content']}\n"
+    
+    # Build enhanced prompt with conversation context and retrieved documents
+    context_from_docs = "\n\n".join([doc.page_content for doc in relevant_docs[:3]])
+    
+    enhanced_question = f"""Based on the following context from the documents:
+
+{context_from_docs}
+{conversation_context}
+
+Current question: {question}
+
+Please provide a helpful answer that considers both the document context and the conversation history."""
+    
+    # Get the answer using the enhanced prompt
+    answer = qa_chain.run(enhanced_question)
+    
+    return {
+        "answer": answer,
+        "relevant_concepts": relevant_concepts,
+        "retrieved_docs_count": len(relevant_docs)
+    }
+
 @app.get("/get_chunks")
 async def get_chunks():
     if not pdf_chunks_data:

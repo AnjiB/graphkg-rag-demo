@@ -16,8 +16,15 @@ export default function App() {
   const [systemStatus, setSystemStatus] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isAsking, setIsAsking] = useState(false);
+  
+  // Chat-specific states
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [isChatting, setIsChatting] = useState(false);
+  
   const networkRef = useRef(null);
   const fileInputRef = useRef(null);
+  const chatEndRef = useRef(null);
 
   const uploadDocument = async () => {
     if (!documentFile) return alert("Select a document");
@@ -67,6 +74,48 @@ export default function App() {
     }
   };
 
+  const sendChatMessage = async () => {
+    if (!chatInput.trim()) return alert("Enter a message");
+    
+    setIsChatting(true);
+    
+    // Add user message to chat
+    const userMessage = { role: "user", content: chatInput };
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput("");
+    
+    try {
+      // Send question with conversation history
+      const res = await axios.post("http://localhost:8000/chat", {
+        question: chatInput,
+        history: chatMessages
+      });
+      
+      // Add assistant response to chat
+      const assistantMessage = { 
+        role: "assistant", 
+        content: res.data.answer,
+        relevant_concepts: res.data.relevant_concepts || []
+      };
+      setChatMessages(prev => [...prev, assistantMessage]);
+      
+      // Update highlighted nodes if knowledge graph is visible
+      setHighlightNodes(res.data.relevant_concepts || []);
+    } catch (error) {
+      alert(`Error: ${error.response?.data?.error || error.message}`);
+      // Remove the user message if there was an error
+      setChatMessages(prev => prev.slice(0, -1));
+    } finally {
+      setIsChatting(false);
+    }
+  };
+
+  const clearChat = () => {
+    setChatMessages([]);
+    setChatInput("");
+    setHighlightNodes([]);
+  };
+
   const checkSystemStatus = async () => {
     try {
       const res = await axios.get("http://localhost:8000/status");
@@ -99,6 +148,11 @@ export default function App() {
   useEffect(() => {
     checkSystemStatus();
   }, []);
+
+  // Auto-scroll chat to bottom when new messages arrive
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
 
   useEffect(() => {
     if (kg.nodes.length === 0 || kg.edges.length === 0) return;
@@ -176,7 +230,7 @@ export default function App() {
       </div>
 
       <div className="section">
-        <h2>❓ Ask Questions</h2>
+        <h2>❓ Ask Questions (Single Q&A)</h2>
         <div className="question-section">
           <input 
             value={question} 
@@ -184,6 +238,7 @@ export default function App() {
             placeholder="Ask a question about your document..." 
             className="question-input"
             disabled={isAsking}
+            onKeyPress={e => e.key === 'Enter' && askQuestion()}
           />
           <button 
             onClick={askQuestion} 
@@ -206,6 +261,65 @@ export default function App() {
             <p>{answer}</p>
           </div>
         )}
+      </div>
+
+      <div className="section">
+        <h2>💬 Chat (Conversational Q&A)</h2>
+        <div className="chat-container">
+          <div className="chat-messages">
+            {chatMessages.length === 0 ? (
+              <div className="chat-placeholder">
+                <p>Start a conversation! Ask a question and continue with follow-ups.</p>
+                <p style={{ fontSize: '0.9rem', color: '#666' }}>The chat maintains context from previous messages.</p>
+              </div>
+            ) : (
+              <>
+                {chatMessages.map((msg, idx) => (
+                  <div key={idx} className={`chat-message ${msg.role}`}>
+                    <div className="message-label">
+                      {msg.role === 'user' ? '👤 You' : '🤖 Assistant'}
+                    </div>
+                    <div className="message-content">
+                      {msg.content}
+                    </div>
+                    {msg.relevant_concepts && msg.relevant_concepts.length > 0 && (
+                      <div className="message-concepts">
+                        📚 Related: {msg.relevant_concepts.slice(0, 3).join(', ')}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <div ref={chatEndRef} />
+              </>
+            )}
+          </div>
+          <div className="chat-input-section">
+            <input 
+              value={chatInput} 
+              onChange={e => setChatInput(e.target.value)} 
+              placeholder="Type your message or follow-up question..." 
+              className="chat-input"
+              disabled={isChatting}
+              onKeyPress={e => e.key === 'Enter' && sendChatMessage()}
+            />
+            <button 
+              onClick={sendChatMessage} 
+              className="btn btn-chat"
+              disabled={isChatting || !chatInput.trim()}
+            >
+              {isChatting ? "Sending..." : "Send"}
+            </button>
+            {chatMessages.length > 0 && (
+              <button 
+                onClick={clearChat} 
+                className="btn btn-clear"
+                disabled={isChatting}
+              >
+                Clear Chat
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="section">
